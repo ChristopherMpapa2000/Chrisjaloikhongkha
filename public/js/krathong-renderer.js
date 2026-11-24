@@ -78,12 +78,21 @@ export function drawKrathong(ctx, x, y, scale, spec, time, options = {}) {
     return;
   }
 
-  const {
+  let {
     baseType = 'banana-leaf',
     flowerType = 'marigold',
     candleType = 'classic-gold',
     ornamentType = 'coins',
   } = spec || {};
+
+  // Resilient alias mappings
+  if (baseType === 'gold') baseType = 'royal-gold';
+  if (flowerType === 'purple-orchid' || flowerType === 'purple') flowerType = 'orchid';
+  if (flowerType === 'lotus' || flowerType === 'pink-lotus') flowerType = 'pink-lotus';
+  if (flowerType === 'red-gold-rose') flowerType = 'rose';
+  if (candleType === 'lotus') candleType = 'lotus-candle';
+  if (candleType === 'gold' || candleType === 'classic') candleType = 'classic-gold';
+  if (ornamentType === 'fireflies') ornamentType = 'butterfly';
 
   const {
     showReflection = true,
@@ -266,7 +275,8 @@ function drawBaseBack(ctx, baseType) {
     ctx.beginPath();
     ctx.ellipse(0, -1, 36, 13, 0, 0, Math.PI * 2);
     ctx.fill();
-  } else if (baseType === 'royal-gold') {
+  } else {
+    // Default / royal-gold
     drawPleatedPetals(ctx, -Math.PI, 0, 11, '#7c5310', '#c9932c', '#fce192', 49, 22, -5);
     ctx.fillStyle = '#5c3c09';
     ctx.beginPath();
@@ -350,7 +360,8 @@ function drawBaseFront(ctx, baseType) {
     ctx.fill();
 
     drawBreadPetals(ctx, 0.06, Math.PI - 0.06, 9, '#a56024', '#de9f52', '#fbe0a6', 45, 17, 1);
-  } else if (baseType === 'royal-gold') {
+  } else {
+    // Default / royal-gold
     const body = ctx.createLinearGradient(0, 0, 0, 20);
     body.addColorStop(0, '#e5b34b');
     body.addColorStop(0.6, '#a87118');
@@ -474,6 +485,8 @@ function drawFlowerRing(ctx, flowerType, half, t) {
       drawJasmineCluster(ctx, fx, fy, 6.8);
     } else if (flowerType === 'rose') {
       drawRoseBloom(ctx, fx, fy, 7.2, t + i);
+    } else {
+      drawMarigoldBloom(ctx, fx, fy, 7.2);
     }
   }
 }
