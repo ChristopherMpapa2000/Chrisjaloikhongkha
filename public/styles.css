@@ -2578,21 +2578,48 @@ body.zen-mode .zen-restore-btn {
 
   /* Studio Modal Mobile Layout */
   .modal-card--studio {
+    width: 100vw !important;
+    max-width: 100vw !important;
     max-height: 88dvh;
+    box-sizing: border-box !important;
     overflow-y: auto;
+    overflow-x: hidden !important;
     overscroll-behavior: contain;
   }
 
   .modal-card--studio .studio-layout {
-    grid-template-columns: 1fr;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 8px 12px 0 !important;
+    overflow-x: hidden !important;
     gap: 10px;
-    padding: 10px 14px 0;
+  }
+
+  .studio-preview-pane,
+  .studio-controls-pane,
+  .studio-step-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 
   .preview-stage {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     aspect-ratio: 16 / 9;
-    max-height: 135px;
+    max-height: 140px;
     border-radius: 14px;
+  }
+
+  #previewCanvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
   }
 
   .preview-summary {
@@ -2602,8 +2629,10 @@ body.zen-mode .zen-restore-btn {
     scrollbar-width: none;
     gap: 5px;
     padding: 2px 0 4px;
-    mask-image: linear-gradient(to right, black 82%, transparent);
-    -webkit-mask-image: linear-gradient(to right, black 82%, transparent);
+    max-width: 100%;
+    box-sizing: border-box;
+    mask-image: linear-gradient(to right, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to right, black 85%, transparent);
   }
 
   .summary-tag {
@@ -2614,31 +2643,53 @@ body.zen-mode .zen-restore-btn {
   }
 
   .studio-steps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 6px;
     margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .step-tab {
-    padding: 8px 10px;
-    font-size: 0.8rem;
+    padding: 8px 6px;
+    font-size: 0.78rem;
     border-radius: 10px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .step-tab span:last-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .part-category-tabs {
+    display: flex;
     gap: 5px;
     margin-bottom: 10px;
     padding-bottom: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .cat-tab {
-    padding: 6px 12px;
-    font-size: 0.78rem;
+    padding: 6px 11px;
+    font-size: 0.76rem;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .part-options-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 7px;
     margin-bottom: 10px;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .part-options-grid .part-card:last-child:nth-child(odd) {
@@ -2646,9 +2697,19 @@ body.zen-mode .zen-restore-btn {
   }
 
   .part-card {
-    padding: 8px 9px;
-    gap: 8px;
+    padding: 8px 8px;
+    gap: 7px;
     border-radius: 12px;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .part-card > div,
+  .part-card > span:last-child {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    flex: 1 1 0%;
   }
 
   .part-swatch {
@@ -2656,15 +2717,22 @@ body.zen-mode .zen-restore-btn {
     height: 32px;
     font-size: 1.1rem;
     border-radius: 9px;
+    flex-shrink: 0;
   }
 
   .part-card__name {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   .part-card__desc {
-    font-size: 0.66rem;
-    line-height: 1.25;
+    font-size: 0.64rem;
+    line-height: 1.2;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   /* Sticky Footer Actions inside Studio Modal */
@@ -2672,9 +2740,11 @@ body.zen-mode .zen-restore-btn {
     position: sticky;
     bottom: 0;
     z-index: 25;
-    margin: 8px -14px 0;
-    padding: 10px 14px max(14px, env(safe-area-inset-bottom));
-    background: linear-gradient(180deg, rgba(13, 19, 41, 0.92) 0%, rgba(8, 12, 26, 0.98) 100%);
+    margin: 8px -12px 0 !important;
+    padding: 10px 12px max(14px, env(safe-area-inset-bottom)) !important;
+    width: calc(100% + 24px) !important;
+    box-sizing: border-box !important;
+    background: linear-gradient(180deg, rgba(13, 19, 41, 0.94) 0%, rgba(8, 12, 26, 0.98) 100%);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     border-top: 1px solid rgba(247, 214, 138, 0.22);
@@ -2685,21 +2755,33 @@ body.zen-mode .zen-restore-btn {
     height: 44px;
     font-size: 0.9rem;
     border-radius: var(--radius-pill);
+    width: 100%;
   }
 
   .wish-presets {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
     gap: 5px;
     margin-top: 6px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding-bottom: 2px;
   }
 
   .preset-chip {
     padding: 3px 9px;
     font-size: 0.72rem;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .mini-location-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 6px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .mini-loc-card {

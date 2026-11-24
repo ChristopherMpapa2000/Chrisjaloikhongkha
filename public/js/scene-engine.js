@@ -396,8 +396,10 @@ export class RiverSceneEngine {
 
     this.canvas.addEventListener('pointerdown', (e) => {
       const rect = this.canvas.getBoundingClientRect();
-      const px = e.clientX - rect.left;
-      const py = e.clientY - rect.top;
+      const scaleX = rect.width > 0 ? this.width / rect.width : 1;
+      const scaleY = rect.height > 0 ? this.height / rect.height : 1;
+      const px = (e.clientX - rect.left) * scaleX;
+      const py = (e.clientY - rect.top) * scaleY;
       if (this.godzillaShot.active) {
         this.godzillaShot.handlePointerDown(px, py);
         return;
@@ -414,8 +416,10 @@ export class RiverSceneEngine {
 
     this.canvas.addEventListener('pointerup', (e) => {
       const rect = this.canvas.getBoundingClientRect();
-      const px = e.clientX - rect.left;
-      const py = e.clientY - rect.top;
+      const scaleX = rect.width > 0 ? this.width / rect.width : 1;
+      const scaleY = rect.height > 0 ? this.height / rect.height : 1;
+      const px = (e.clientX - rect.left) * scaleX;
+      const py = (e.clientY - rect.top) * scaleY;
       if (this.godzillaShot.active) {
         this.godzillaShot.handlePointerUp(px, py);
         return;
@@ -428,8 +432,10 @@ export class RiverSceneEngine {
 
     this.canvas.addEventListener('pointermove', (e) => {
       const rect = this.canvas.getBoundingClientRect();
-      const px = e.clientX - rect.left;
-      const py = e.clientY - rect.top;
+      const scaleX = rect.width > 0 ? this.width / rect.width : 1;
+      const scaleY = rect.height > 0 ? this.height / rect.height : 1;
+      const px = (e.clientX - rect.left) * scaleX;
+      const py = (e.clientY - rect.top) * scaleY;
 
       if (this.godzillaShot.active) {
         this.hoveredEntity = null;

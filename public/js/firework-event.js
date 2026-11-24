@@ -97,15 +97,15 @@ export class FireworkFantasyController {
 
   handlePointerMove(px, py) {
     if (!this.launcherOpen) return false;
-    this.aimX = clamp(px / Math.max(1, this.engine.width), 0.12, 0.88);
-    this.aimY = clamp(py / Math.max(1, this.engine.height), 0.08, 0.38);
+    this.aimX = clamp(px / Math.max(1, this.engine.width), 0.08, 0.92);
+    this.aimY = clamp(py / Math.max(1, this.engine.height), 0.06, 0.44);
     return true;
   }
 
   handlePointerDown(px, py) {
     if (!this.launcherOpen) return false;
     this.handlePointerMove(px, py);
-    // Clicking the sky fires an interactive rocket right there (triggers UFO ambush if UFO is cloaked!)
+    // Clicking the sky fires an interactive rocket right at the tapped spot
     if (py < this.engine.height * 0.65) {
       this.fireUfoOrSkyRocket(this.aimX, this.aimY);
       return true;
@@ -114,16 +114,28 @@ export class FireworkFantasyController {
   }
 
   /**
-   * Fires a firework rocket from the brass mortar cannon.
-   * If UFO is currently hidden, it strikes the cloaked UFO stealth shield!
+   * Fires a firework rocket from the brass mortar cannon directly at the aimed target.
+   * If aimed near the cloaked UFO (or fired towards it), strikes the stealth shield!
    */
   fireUfoOrSkyRocket(xRatio = null, yRatio = null) {
     const w = this.engine.width;
     const h = this.engine.height;
-    const triggerUfo = this.ufo.state === 'hidden';
 
-    const tx = (xRatio != null ? xRatio : triggerUfo ? 0.3 + Math.random() * 0.4 : 0.18 + Math.random() * 0.64) * w;
-    const ty = (yRatio != null ? yRatio : triggerUfo ? 0.26 + Math.random() * 0.05 : 0.16 + Math.random() * 0.16) * h;
+    // Use current user aim position if not explicitly supplied
+    const targetXRatio = xRatio != null ? xRatio : this.aimX;
+    const targetYRatio = yRatio != null ? yRatio : this.aimY;
+
+    const tx = clamp(targetXRatio, 0.08, 0.92) * w;
+    const ty = clamp(targetYRatio, 0.06, 0.44) * h;
+
+    // UFO cloaked position is at (w * 0.5, h * 0.19)
+    const ufoX = w * 0.5;
+    const ufoY = h * 0.19;
+    const distToUfo = Math.hypot(tx - ufoX, ty - ufoY);
+
+    // If UFO is hidden, triggers UFO ambush if aimed near UFO (within 75px radius),
+    // or if shot from the button with default aim close to center
+    const triggerUfo = this.ufo.state === 'hidden' && (distToUfo < 75 || (xRatio == null && Math.abs(this.aimX - 0.5) < 0.15));
 
     this.cannonRecoil = 1;
     this._launchRocket(tx, ty, triggerUfo ? 'ufo-strike' : 'rainbow-burst');
@@ -183,9 +195,13 @@ export class FireworkFantasyController {
   }
 
   _launchRocket(targetX, targetY, kind) {
-    const startX = this.engine.width * 0.5;
-    const startY = this.engine.height - (this.launcherOpen ? 196 : 56);
-    const duration = kind === 'naga-flare' ? 0.68 : 0.58;
+    const cx = this.engine.width * 0.5;
+    const cy = this.engine.height - (this.launcherOpen ? 188 : 56);
+    const angle = Math.atan2(targetY - cy, targetX - cx);
+    const barrelLen = this.launcherOpen ? 46 : 28;
+    const startX = cx + Math.cos(angle) * barrelLen;
+    const startY = cy + Math.sin(angle) * barrelLen;
+    const duration = kind === 'naga-flare' ? 0.68 : 0.52;
 
     this.rockets.push({
       startX,
@@ -727,6 +743,45 @@ export class FireworkFantasyController {
       ctx.arc(dx, dy, 2.8 - f * 1.4, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
+
+    // Aiming Reticle Crosshair at (tx, ty)
+    const isLockedOnUfo = this.ufo.state === 'hidden' && Math.hypot(tx - w * 0.5, ty - h * 0.19) < 65;
+    const reticleColor = isLockedOnUfo ? '#34d399' : '#fef08a';
+
+    ctx.save();
+    ctx.translate(tx, ty);
+
+    // Outer rotating reticle ring with ticks
+    const rot = now * 0.002;
+    ctx.strokeStyle = reticleColor;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(0, 0, 18, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 4 crosshair tick marks
+    ctx.beginPath();
+    for (let k = 0; k < 4; k++) {
+      const a = rot + (k * Math.PI) / 2;
+      ctx.moveTo(Math.cos(a) * 14, Math.sin(a) * 14);
+      ctx.lineTo(Math.cos(a) * 23, Math.sin(a) * 23);
+    }
+    ctx.stroke();
+
+    // Center pulsating target dot
+    const dotPulse = 2.5 + Math.sin(now * 0.01) * 1;
+    ctx.fillStyle = reticleColor;
+    ctx.beginPath();
+    ctx.arc(0, 0, dotPulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Target label below reticle
+    ctx.font = '600 11px Prompt, "Segoe UI Emoji", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = isLockedOnUfo ? '#6ee7b7' : 'rgba(254, 240, 138, 0.9)';
+    ctx.fillText(isLockedOnUfo ? '🎯 ล็อคเป้าหมาย UFO!' : '✦ จุดเล็งยิงพลุ', 0, 26);
     ctx.restore();
 
     // Brass Thai Firework Mortar Cannon
