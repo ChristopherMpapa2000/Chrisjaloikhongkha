@@ -203,9 +203,20 @@ async function init() {
       sound.playBlessChime();
       showSnackbar('😂 จับเด็กแอบว่ายเก็บเหรียญได้คาหนังคาเขา!');
     },
+    onCrocAttack: () => {
+      showSnackbar('⚠️ จ๊ากกกก!! จระเข้แม่น้ำโผล่มาแล้ววว!! 🐊');
+    },
+    onCrocChomp: () => {
+      sound.playCrocChomp();
+      showSnackbar('🐊 งั่มมม!! จระเข้ฮุบเด็กเก็บเหรียญดำน้ำไปซะแล้ว!');
+    },
   });
   scene.setMyKrathongIds(state.myKrathongIds);
   scene.start();
+  window.scene = scene;
+
+  // Test / cameo hook
+  window.triggerCroc = () => scene.triggerCrocodileAttack();
 
   renderLocationBar();
   renderStudioLocationGrid();

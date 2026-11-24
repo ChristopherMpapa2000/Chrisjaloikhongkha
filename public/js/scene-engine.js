@@ -52,11 +52,21 @@ export class RiverSceneEngine {
       onKidCaught: () => {
         if (this.callbacks.onKidCaught) this.callbacks.onKidCaught();
       },
+      onCrocAttack: () => {
+        if (this.callbacks.onCrocAttack) this.callbacks.onCrocAttack();
+      },
+      onCrocChomp: () => {
+        if (this.callbacks.onCrocChomp) this.callbacks.onCrocChomp();
+      },
     });
 
     this._initBackdropEntities();
     this._bindEvents();
     this.resize();
+  }
+
+  triggerCrocodileAttack() {
+    this.riverCameos.triggerCrocodileAttack();
   }
 
   openFireworkLauncher(hooks = {}) {
@@ -724,22 +734,11 @@ export class RiverSceneEngine {
     ctx.fillStyle = waterGrad;
     ctx.fillRect(0, horizonY, w, h - horizonY);
 
-    // 8. Landmark Skyline Reflection on Water (softly flipped)
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, horizonY, w, h - horizonY);
-    ctx.clip();
-    ctx.globalAlpha = 0.24;
-    ctx.translate(0, horizonY * 2);
-    ctx.scale(1, -0.58);
-    this._drawLocationLandmark(ctx, this.locationId, w, horizonY, now, true);
-    ctx.restore();
-
-    // 9. Moonlight Water Shimmer & Fireworks Reflections
+    // 8. Moonlight Water Shimmer & Fireworks Reflections (Castle water reflection removed as requested)
     this._drawMoonReflection(ctx, moonX, horizonY, h, now);
     this._drawFireworks(ctx, horizonY, true);
 
-    // 10. Crisp Architectural Landmark Skyline above Horizon
+    // 9. Crisp Architectural Landmark Skyline above Horizon
     this._drawLocationLandmark(ctx, this.locationId, w, horizonY, now, false);
 
     // Subtle Shoreline Rim Light

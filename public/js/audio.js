@@ -243,6 +243,94 @@ export class SoundscapeEngine {
   }
 
   /**
+   * Synthesized Crocodile Snapping Chomp & River Gulp SFX!
+   */
+  playCrocChomp() {
+    if (!this.enabled || !this._ensureContext()) return;
+    const now = this.ctx.currentTime;
+
+    // 1. Water splash whoosh & surge
+    const noiseLength = 0.35;
+    const noiseBuf = this.ctx.createBuffer(1, this.ctx.sampleRate * noiseLength, this.ctx.sampleRate);
+    const data = noiseBuf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.1));
+    }
+    const noiseSrc = this.ctx.createBufferSource();
+    noiseSrc.buffer = noiseBuf;
+
+    const noiseFilter = this.ctx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.setValueAtTime(820, now);
+    noiseFilter.frequency.exponentialRampToValueAtTime(180, now + 0.3);
+
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.38, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+    noiseSrc.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(this.masterGain);
+    noiseSrc.start(now);
+
+    // 2. Heavy jaw snapping transient (percussive clamp)
+    const snapOsc = this.ctx.createOscillator();
+    const snapGain = this.ctx.createGain();
+    snapOsc.type = 'triangle';
+    snapOsc.frequency.setValueAtTime(280, now + 0.02);
+    snapOsc.frequency.exponentialRampToValueAtTime(45, now + 0.16);
+
+    snapGain.gain.setValueAtTime(0.52, now + 0.02);
+    snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+    snapOsc.connect(snapGain);
+    snapGain.connect(this.masterGain);
+    snapOsc.start(now + 0.02);
+    snapOsc.stop(now + 0.2);
+
+    // 3. Comical comic gulp / throat swallow tone
+    const gulpOsc = this.ctx.createOscillator();
+    const gulpGain = this.ctx.createGain();
+    gulpOsc.type = 'sine';
+    gulpOsc.frequency.setValueAtTime(150, now + 0.18);
+    gulpOsc.frequency.exponentialRampToValueAtTime(340, now + 0.32);
+    gulpOsc.frequency.exponentialRampToValueAtTime(110, now + 0.44);
+
+    gulpGain.gain.setValueAtTime(0.001, now + 0.18);
+    gulpGain.gain.linearRampToValueAtTime(0.28, now + 0.25);
+    gulpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+
+    gulpOsc.connect(gulpGain);
+    gulpGain.connect(this.masterGain);
+    gulpOsc.start(now + 0.18);
+    gulpOsc.stop(now + 0.5);
+
+    // 4. Cheerful comic burp / bubble pop after swallow
+    setTimeout(() => {
+      if (!this.ctx || !this.enabled) return;
+      const t = this.ctx.currentTime;
+      const burpOsc = this.ctx.createOscillator();
+      const burpGain = this.ctx.createGain();
+      burpOsc.type = 'sawtooth';
+      burpOsc.frequency.setValueAtTime(105, t);
+      burpOsc.frequency.exponentialRampToValueAtTime(65, t + 0.28);
+
+      const burpFilter = this.ctx.createBiquadFilter();
+      burpFilter.type = 'lowpass';
+      burpFilter.frequency.setValueAtTime(320, t);
+
+      burpGain.gain.setValueAtTime(0.25, t);
+      burpGain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+
+      burpOsc.connect(burpFilter);
+      burpFilter.connect(burpGain);
+      burpGain.connect(this.masterGain);
+      burpOsc.start(t);
+      burpOsc.stop(t + 0.32);
+    }, 700);
+  }
+
+  /**
    * Synthesized Kaiju Godzilla Emergence Rumble + Iconic Roar Sweep!
    */
   playKaijuRoar() {
