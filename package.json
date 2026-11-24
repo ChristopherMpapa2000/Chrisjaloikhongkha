@@ -1,0 +1,13 @@
+{
+  "name": "saeng-khongkha-loy-krathong",
+  "version": "1.0.0",
+  "description": "แสงคงคา — เว็บลอยกระทงออนไลน์ร่วมสมัย Full-stack (HTML/CSS/JS + Node.js SQLite + Real-time SSE)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

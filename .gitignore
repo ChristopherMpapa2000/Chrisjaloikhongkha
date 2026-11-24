@@ -1,0 +1,16 @@
+# Environment secrets
+.env
+.env.local
+.env.*.local
+
+# Local SQLite database files
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Logs & OS files
+*.log
+.DS_Store
+Thumbs.db
+node_modules/

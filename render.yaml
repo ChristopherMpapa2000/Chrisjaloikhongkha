@@ -1,0 +1,18 @@
+# Render Blueprint — แสงคงคา (Saeng Khongkha) Free Docker Deployment
+services:
+  - type: web
+    name: saeng-khongkha
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false

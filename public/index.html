@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>แสงคงคา — ลอยกระทงออนไลน์ร่วมสมัย ๒๕๖๙</title>
+  <meta name="description" content="ร่วมสืบสานประเพณีลอยกระทงออนไลน์รักษ์โลก ออกแบบกระทง DIY ชูตลงห่วงก็อตซิลล่า เลือกสถานที่สำคัญทั่วไทย เขียนคำอธิษฐาน ปล่อยโคมลอย จุดพลุ และรับการ์ดที่ระลึกแบบเรียลไทม์" />
+  <meta name="theme-color" content="#080d20" />
+  <!-- OG_META_PLACEHOLDER -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <!-- Full-Viewport Interactive 2D Night River Canvas -->
+  <canvas id="riverCanvas" aria-label="ฉากแม่น้ำลอยกระทงออนไลน์แบบโต้ตอบได้"></canvas>
+
+  <!-- Floating Canvas Hover Tooltip -->
+  <div id="riverTooltip" class="river-tooltip" aria-hidden="true">
+    <div class="river-tooltip__name" id="tooltipName"></div>
+    <div class="river-tooltip__wish" id="tooltipWish"></div>
+    <div class="river-tooltip__meta">
+      <span id="tooltipBlessings">💛 0</span>
+      <span>แตะเพื่ออ่านและส่งคำอวยพร</span>
+    </div>
+  </div>
+
+  <!-- Zen Mode Restore Button (Visible only in Zen Mode) -->
+  <button id="exitZenBtn" class="zen-restore-btn" type="button" aria-label="แสดงเมนูกลับคืน">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span>แสดงเมนู</span>
+  </button>
+
+  <!-- Main Glassmorphism HUD -->
+  <div id="hudLayer" class="hud-layer">
+    <!-- Top Header -->
+    <header class="top-hud">
+      <div class="brand-cluster">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" width="34" height="34" fill="none">
+            <circle cx="20" cy="14" r="7.5" fill="url(#moonGrad)" />
+            <path d="M8 25.5C11.5 23 15.5 22 20 22C24.5 22 28.5 23 32 25.5C29.5 30 25.2 32.5 20 32.5C14.8 32.5 10.5 30 8 25.5Z" fill="url(#lotusGrad)" />
+            <path d="M13 24.5C15.2 20.5 17.5 18.8 20 17.5C22.5 18.8 24.8 20.5 27 24.5C24.8 26.2 22.4 27 20 27C17.6 27 15.2 26.2 13 24.5Z" fill="#FFE6A7" opacity="0.92" />
+            <path d="M20 12.2C20.9 14.1 21.5 15.5 20 17C18.5 15.5 19.1 14.1 20 12.2Z" fill="#FFF7D6" />
+            <defs>
+              <radialGradient id="moonGrad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(18 12) rotate(45) scale(11)">
+                <stop stop-color="#FFF9DF" />
+                <stop offset="1" stop-color="#F2B84B" />
+              </radialGradient>
+              <linearGradient id="lotusGrad" x1="8" y1="22" x2="32" y2="32.5" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#E79B50" />
+                <stop offset="0.5" stop-color="#F6D07A" />
+                <stop offset="1" stop-color="#D97A6C" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">แสงคงคา</h1>
+          <p class="brand-sub">ลอยกระทงออนไลน์ · ๒๕๖๙</p>
+        </div>
+      </div>
+
+      <!-- Location Switcher -->
+      <nav class="location-bar" aria-label="เลือกสถานที่ลอยกระทง" id="locationBar">
+        <!-- Populated dynamically from config.js -->
+      </nav>
+
+      <!-- Live Eco Stats & Utility Controls -->
+      <div class="utility-cluster">
+        <button id="statsPillBtn" class="stats-pill" type="button" title="ดูสถิติรักษ์โลกและภาพรวมเทศกาล">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span class="stats-pill__text">
+            <strong id="statTotalKrathongs">--</strong> กระทง
+            <span class="stats-pill__sep">·</span>
+            <span class="eco-highlight">ลดขยะ <strong id="statWasteKg">--</strong> กก.</span>
+          </span>
+        </button>
+
+        <button id="soundToggleBtn" class="icon-btn" type="button" aria-label="เปิดหรือปิดเสียงบรรยากาศและดนตรีไทย" title="เสียงบรรยากาศ & ดนตรีไทย">
+          <svg id="soundIconOff" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>
+          <svg id="soundIconOn" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </button>
+
+        <button id="searchOpenBtn" class="icon-btn" type="button" aria-label="ค้นหากระทงและดูกระทงของฉัน" title="ค้นหากระทง / กระทงของฉัน">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
+
+        <button id="zenModeBtn" class="icon-btn" type="button" aria-label="โหมดชมบรรยากาศเต็มจอ" title="ซ่อนเมนูชมสายน้ำ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Poetic Scene Caption -->
+    <div class="scene-banner" id="sceneBanner">
+      <div class="scene-banner__meta">
+        <span class="scene-banner__badge" id="sceneLocationTag">กรุงเทพมหานคร</span>
+        <span class="scene-banner__online" id="onlineCountLabel">ร่วมลอยออนไลน์ 1 คน</span>
+      </div>
+      <h2 class="scene-banner__title" id="sceneTitle">แม่น้ำเจ้าพระยา · วัดอรุณราชวราราม</h2>
+      <p class="scene-banner__hint" id="sceneHint">คลิกกระทงบนผิวน้ำเพื่ออ่านคำอธิษฐานและส่งใจ · แตะท้องฟ้าเพื่อปล่อยโคม</p>
+    </div>
+
+    <!-- Empty River First-Floater Invitation (Visible when location has 0 krathongs) -->
+    <div id="emptyRiverCard" class="empty-river-card hidden" aria-live="polite">
+      <div class="empty-river-card__eyebrow">🌕 คืนเพ็ญเดือน ๑๒ · สายน้ำรอรับกระทงใบแรก</div>
+      <h3 class="empty-river-card__title">มาเป็นคนแรกที่ลอยกระทงที่นี่กันเถอะ!</h3>
+      <p id="emptyRiverDesc" class="empty-river-card__desc">
+        ออกแบบกระทง DIY ในสไตล์ของคุณ แล้วชูตลงห่วงก็อตซิลล่าเป็นใบแรกของสายน้ำคืนนี้
+      </p>
+      <button id="emptyRiverCtaBtn" class="btn btn--gold" type="button">
+        ✦ สร้างและลอยกระทงใบแรก
+      </button>
+    </div>
+
+    <!-- Real-time Activity Toast Feed -->
+    <div id="liveFeed" class="live-feed" aria-live="polite"></div>
+
+    <!-- Bottom Floating Action Dock -->
+    <nav class="bottom-dock" aria-label="เครื่องมือหลัก">
+      <button id="lanternBtn" class="dock-btn" type="button" title="ปล่อยโคมลอยขึ้นสู่ท้องฟ้า">
+        <span class="dock-btn__icon" aria-hidden="true">🏮</span>
+        <span class="dock-btn__label">ปล่อยโคม</span>
+      </button>
+
+      <button id="openStudioBtn" class="dock-btn dock-btn--primary" type="button">
+        <span class="dock-btn__sparkle" aria-hidden="true">✦</span>
+        <span class="dock-btn__label">สร้างและลอยกระทง</span>
+      </button>
+
+      <button id="fireworkBtn" class="dock-btn" type="button" title="จุดพลุเฉลิมฉลองคืนวันเพ็ญ">
+        <span class="dock-btn__icon" aria-hidden="true">🎆</span>
+        <span class="dock-btn__label">จุดพลุ</span>
+      </button>
+
+      <button id="fortuneOpenBtn" class="dock-btn" type="button" title="เขย่าเซียมซีคืนวันเพ็ญ">
+        <span class="dock-btn__icon" aria-hidden="true">🔮</span>
+        <span class="dock-btn__label">เซียมซี</span>
+      </button>
+
+      <button id="myKrathongsDockBtn" class="dock-btn" type="button" title="ดูกระทงที่คุณลอยไว้">
+        <span class="dock-btn__icon" aria-hidden="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4c-2.2 3.1-3.2 5.7-3.2 8 0 2.4 1.4 4.2 3.2 4.8 1.8-.6 3.2-2.4 3.2-4.8 0-2.3-1-4.9-3.2-8Z"/><path d="M5.2 10.5c-.2 3.4 2 6.5 6.8 6.5s7-3.1 6.8-6.5c-1.8.8-3.4 2.1-4.3 3.7M9.5 14.2c-.9-1.6-2.5-2.9-4.3-3.7"/><path d="M4 19.5c2.4 1 5.1 1.5 8 1.5s5.6-.5 8-1.5"/></svg>
+        </span>
+        <span class="dock-btn__label">กระทงของฉัน</span>
+        <span id="myCountBadge" class="dock-badge hidden">0</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 1: KRATHONG DIY STUDIO                              -->
+  <!-- ========================================================= -->
+  <div id="studioModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="studioModalTitle">
+    <div class="modal-card modal-card--studio">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">KRATHONG DIY STUDIO</span>
+          <h2 id="studioModalTitle" class="modal-title">ออกแบบกระทงและเขียนคำอธิษฐาน</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-modal="studioModal" aria-label="ปิดหน้าต่าง">✕</button>
+      </div>
+
+      <div class="studio-layout">
+        <!-- Left: Live Interactive Water Preview -->
+        <div class="studio-preview-pane">
+          <div class="preview-stage">
+            <canvas id="previewCanvas" width="420" height="360"></canvas>
+            <button id="randomizeBtn" class="preview-chip preview-chip--action" type="button" title="สุ่มดีไซน์กระทงอัตโนมัติ">
+              ✨ สุ่มดีไซน์
+            </button>
+            <div class="preview-eco-chip">🌱 กระทงดิจิทัล ลดขยะ 0.35 กก.</div>
+          </div>
+          <div id="previewSummary" class="preview-summary"></div>
+        </div>
+
+        <!-- Right: Stepper Controls -->
+        <div class="studio-controls-pane">
+          <div class="studio-steps" role="tablist">
+            <button id="stepTab1" class="step-tab active" type="button" role="tab" aria-selected="true" data-step="1">
+              <span class="step-tab__num">1</span>
+              <span>ตกแต่งกระทง</span>
+            </button>
+            <button id="stepTab2" class="step-tab" type="button" role="tab" aria-selected="false" data-step="2">
+              <span class="step-tab__num">2</span>
+              <span>คำอธิษฐาน &amp; สถานที่</span>
+            </button>
+          </div>
+
+          <!-- Step 1: Customize Parts -->
+          <div id="studioStep1" class="studio-step-panel">
+            <div class="part-category-tabs" id="partCategoryTabs" role="tablist">
+              <button class="cat-tab active" type="button" data-category="base">ฐานกระทง</button>
+              <button class="cat-tab" type="button" data-category="flower">ดอกไม้</button>
+              <button class="cat-tab" type="button" data-category="candle">เทียน &amp; ธูป</button>
+              <button class="cat-tab" type="button" data-category="ornament">ของมงคล</button>
+            </div>
+
+            <div id="partOptionsGrid" class="part-options-grid">
+              <!-- Rendered dynamically -->
+            </div>
+
+            <div class="studio-footer-actions">
+              <button id="goToStep2Btn" class="btn btn--gold btn--full" type="button">
+                ถัดไป: เขียนคำอธิษฐาน →
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Wish & Location -->
+          <form id="studioStep2" class="studio-step-panel hidden" novalidate>
+            <div class="form-group">
+              <div class="form-label-row">
+                <label for="senderNameInput" class="form-label" id="senderNameLabel">ชื่อผู้ลอยกระทง</label>
+                <label class="couple-inline-toggle" for="coupleModeToggle">
+                  <input id="coupleModeToggle" type="checkbox" />
+                  <span>♥ โหมดลอยกระทงคู่</span>
+                </label>
+              </div>
+              <div class="name-input-row" id="nameInputRow">
+                <input
+                  id="senderNameInput"
+                  class="form-input"
+                  type="text"
+                  maxlength="40"
+                  placeholder="เช่น คุณแพรวา, น้องต้นกล้า..."
+                  required
+                />
+                <span id="coupleHeartSep" class="couple-heart-sep hidden" aria-hidden="true">♥</span>
+                <input
+                  id="partnerNameInput"
+                  class="form-input hidden"
+                  type="text"
+                  maxlength="18"
+                  placeholder="ชื่อคู่ของคุณ..."
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="form-label-row">
+                <label for="wishTextarea" class="form-label">คำอธิษฐาน / ขอขมาพระแม่คงคา</label>
+                <span id="wishCharCount" class="char-count">0 / 240</span>
+              </div>
+              <textarea
+                id="wishTextarea"
+                class="form-textarea"
+                rows="3"
+                maxlength="240"
+                placeholder="เขียนความปรารถนาดี หรือคำขอขมาพระแม่คงคาในคืนวันเพ็ญ..."
+                required
+              ></textarea>
+              <div class="wish-presets" id="wishPresets">
+                <span class="wish-presets__label">ช่วยคิดคำอธิษฐาน:</span>
+                <button type="button" class="preset-chip" data-wish-cat="khongkha">🙏 ขอขมาพระแม่คงคา</button>
+                <button type="button" class="preset-chip" data-wish-cat="career">💰 งานปัง เงินไหลมา</button>
+                <button type="button" class="preset-chip" data-wish-cat="love">💕 ความรัก</button>
+                <button type="button" class="preset-chip" data-wish-cat="health">🌿 สุขภาพครอบครัว</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">สถานที่ปล่อยกระทง</label>
+              <div id="studioLocationGrid" class="mini-location-grid">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <label class="fantasy-toggle-card" for="fantasyModeToggle">
+              <div class="fantasy-toggle-card__info">
+                <span class="fantasy-toggle-card__title">🦖 โหมดแฟนตาซี: ชูตบาสก็อตซิลล่า!</span>
+                <span class="fantasy-toggle-card__desc">ก็อตซิลล่าจะโผล่ชูแป้นบาสกลางแม่น้ำ ให้คุณชูตกระทงลงห่วงพร้อมลำแสงพลุฉลอง</span>
+              </div>
+              <input id="fantasyModeToggle" class="fantasy-toggle-input" type="checkbox" checked />
+              <span class="fantasy-toggle-switch" aria-hidden="true"></span>
+            </label>
+
+            <p id="studioError" class="form-error hidden" role="alert"></p>
+
+            <div class="studio-footer-actions studio-footer-actions--split">
+              <button id="backToStep1Btn" class="btn btn--ghost" type="button">← ปรับกระทง</button>
+              <button id="floatSubmitBtn" class="btn btn--gold" type="submit">
+                🏀 ชูตกระทงลงห่วงก็อตซิลล่า!
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 2: WISH INSPECTOR & BLESSING MODAL                  -->
+  <!-- ========================================================= -->
+  <div id="wishModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="wishModalName">
+    <div class="modal-card modal-card--wish">
+      <button class="close-btn close-btn--floating" type="button" data-close-modal="wishModal" aria-label="ปิดหน้าต่าง">✕</button>
+
+      <div class="wish-hero">
+        <canvas id="inspectorCanvas" width="380" height="240"></canvas>
+        <div class="wish-hero__badges">
+          <span id="wishLocationBadge" class="pill-badge">📍 วัดอรุณฯ</span>
+          <span id="wishTimeBadge" class="pill-badge pill-badge--muted">เมื่อสักครู่</span>
+        </div>
+      </div>
+
+      <div class="wish-body">
+        <div class="wish-author-row">
+          <div>
+            <span class="wish-author-label">กระทงของ</span>
+            <h3 id="wishModalName" class="wish-author-name">—</h3>
+          </div>
+          <div class="wish-blessing-total">
+            <span>💛</span>
+            <strong id="wishTotalBlessings">0</strong>
+            <span>คำอวยพร</span>
+          </div>
+        </div>
+
+        <blockquote id="wishModalText" class="wish-quote"></blockquote>
+
+        <div id="wishCraftMeta" class="wish-craft-meta"></div>
+
+        <div class="bless-section">
+          <p class="bless-section__title">ร่วมส่งใจและคำอวยพรให้กระทงใบนี้</p>
+          <div class="bless-buttons" id="blessButtons">
+            <button type="button" class="bless-btn" data-reaction="sathu">
+              <span class="bless-btn__emoji">🙏</span>
+              <span class="bless-btn__text">สาธุ</span>
+              <span class="bless-btn__count" data-count="sathu">0</span>
+            </button>
+            <button type="button" class="bless-btn" data-reaction="wish">
+              <span class="bless-btn__emoji">✨</span>
+              <span class="bless-btn__text">สมหวังนะ</span>
+              <span class="bless-btn__count" data-count="wish">0</span>
+            </button>
+            <button type="button" class="bless-btn" data-reaction="health">
+              <span class="bless-btn__emoji">🌿</span>
+              <span class="bless-btn__text">แข็งแรง</span>
+              <span class="bless-btn__count" data-count="health">0</span>
+            </button>
+            <button type="button" class="bless-btn" data-reaction="love">
+              <span class="bless-btn__emoji">💛</span>
+              <span class="bless-btn__text">ส่งใจ</span>
+              <span class="bless-btn__count" data-count="love">0</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="wish-actions">
+          <button id="openEcardFromWishBtn" class="btn btn--gold" type="button">🎴 การ์ดที่ระลึก (E-Card)</button>
+          <button id="copyWishLinkBtn" class="btn btn--ghost" type="button">🔗 คัดลอกลิงก์</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 3: COMMEMORATIVE E-CARD PNG GENERATOR               -->
+  <!-- ========================================================= -->
+  <div id="ecardModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="ecardModalTitle">
+    <div class="modal-card modal-card--ecard">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">COMMEMORATIVE E-CARD · PNG</span>
+          <h2 id="ecardModalTitle" class="modal-title">การ์ดที่ระลึกวันลอยกระทง</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-modal="ecardModal" aria-label="ปิดหน้าต่าง">✕</button>
+      </div>
+
+      <div class="ecard-body">
+        <div class="ecard-frame">
+          <canvas id="ecardCanvas" width="1080" height="1350"></canvas>
+        </div>
+        <div class="ecard-sidebar">
+          <p class="ecard-desc">
+            บันทึกภาพความละเอียดสูง (1080×1350 px) เหมาะสำหรับแชร์ลง Instagram, Facebook หรือส่งต่อคำอวยพรให้คนสำคัญ
+          </p>
+          <div class="ecard-actions">
+            <button id="downloadEcardBtn" class="btn btn--gold btn--full" type="button">
+              ⬇️ ดาวน์โหลดการ์ด PNG
+            </button>
+            <button id="shareEcardBtn" class="btn btn--surface btn--full" type="button">
+              📤 แชร์การ์ด / ลิงก์กระทง
+            </button>
+            <button id="copyEcardLinkBtn" class="btn btn--ghost btn--full" type="button">
+              🔗 คัดลอกลิงก์ไปที่กระทงนี้
+            </button>
+          </div>
+          <div class="ecard-tip">
+            เพื่อนที่เปิดลิงก์ของคุณจะพุ่งตรงไปยังกระทงใบนี้บนสายน้ำ พร้อมกดส่งคำอวยพรให้คุณได้ทันที ✨
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- DRAWER: MY KRATHONGS, SEARCH & ECO DASHBOARD              -->
+  <!-- ========================================================= -->
+  <div id="exploreDrawer" class="drawer-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+    <aside class="drawer-panel">
+      <div class="drawer-header">
+        <h2 id="drawerTitle" class="drawer-title">สำรวจสายน้ำ &amp; สถิติรักษ์โลก</h2>
+        <button class="close-btn" type="button" data-close-modal="exploreDrawer" aria-label="ปิดแผงด้านข้าง">✕</button>
+      </div>
+
+      <div class="drawer-tabs drawer-tabs--four" role="tablist">
+        <button class="drawer-tab active" type="button" data-drawer-tab="mine">✦ ของฉัน</button>
+        <button class="drawer-tab" type="button" data-drawer-tab="top">🏆 ยอดนิยม</button>
+        <button class="drawer-tab" type="button" data-drawer-tab="search">🔍 ค้นหา</button>
+        <button class="drawer-tab" type="button" data-drawer-tab="eco">🌱 รักษ์โลก</button>
+      </div>
+
+      <!-- Tab: My Krathongs -->
+      <div id="drawerTabMine" class="drawer-content">
+        <div id="myKrathongsList" class="krathong-list"></div>
+      </div>
+
+      <!-- Tab: Top 5 Popular Krathongs -->
+      <div id="drawerTabTop" class="drawer-content hidden">
+        <div class="top-banner-note">
+          🏆 5 อันดับกระทงที่ได้รับคำอวยพรสูงสุดประจำคืนนี้ (อัปเดตสดจากฐานข้อมูล)
+        </div>
+        <div id="topKrathongsList" class="krathong-list"></div>
+      </div>
+
+      <!-- Tab: Global Search -->
+      <div id="drawerTabSearch" class="drawer-content hidden">
+        <div class="search-box">
+          <input
+            id="globalSearchInput"
+            class="form-input"
+            type="search"
+            placeholder="พิมพ์ชื่อผู้ลอย หรือคำในคำอธิษฐาน..."
+            autocomplete="off"
+          />
+        </div>
+        <div id="searchResultsList" class="krathong-list"></div>
+      </div>
+
+      <!-- Tab: Eco Impact & Stats -->
+      <div id="drawerTabEco" class="drawer-content hidden">
+        <div class="eco-hero-card">
+          <div class="eco-hero-card__label">ช่วยลดขยะในแม่น้ำลำคลองแล้ว</div>
+          <div class="eco-hero-card__value"><span id="ecoWasteBig">0.00</span> <small>กิโลกรัม</small></div>
+          <div class="eco-hero-card__sub">ลดการปล่อยก๊าซคาร์บอนประมาณ <strong id="ecoCo2Big">0.00</strong> กก. CO₂e</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-tile">
+            <span class="stat-tile__label">กระทงทั้งหมด</span>
+            <strong id="ecoTotalKrathongs" class="stat-tile__value">0</strong>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile__label">คำอวยพรที่ส่งถึงกัน</span>
+            <strong id="ecoTotalBlessings" class="stat-tile__value">0</strong>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile__label">โคมลอยขึ้นฟ้า</span>
+            <strong id="ecoTotalLanterns" class="stat-tile__value">0</strong>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile__label">พลุเฉลิมฉลอง</span>
+            <strong id="ecoTotalFireworks" class="stat-tile__value">0</strong>
+          </div>
+        </div>
+
+        <div class="location-breakdown">
+          <h3 class="breakdown-title">สัดส่วนกระทงแต่ละสถานที่</h3>
+          <div id="locationBreakdownBars" class="breakdown-bars"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 4: SIEM-SI FULL MOON FORTUNE SHAKER                 -->
+  <!-- ========================================================= -->
+  <div id="fortuneModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="fortuneModalTitle">
+    <div class="modal-card modal-card--fortune">
+      <div class="modal-header">
+        <div>
+          <span class="modal-eyebrow">SIEM-SI · FULL MOON FORTUNE</span>
+          <h2 id="fortuneModalTitle" class="modal-title">เซียมซีคืนเพ็ญเดือน ๑๒</h2>
+        </div>
+        <button class="close-btn" type="button" data-close-modal="fortuneModal" aria-label="ปิดหน้าต่าง">✕</button>
+      </div>
+
+      <div class="fortune-body">
+        <!-- Stage 1: Animated Bamboo Cup -->
+        <div id="fortuneShakeStage" class="fortune-stage">
+          <div id="siemsiCup" class="siemsi-cup" title="คลิกเพื่อเขย่าเซียมซี!">
+            <div class="siemsi-sticks">
+              <span class="siemsi-stick s1"></span>
+              <span class="siemsi-stick s2"></span>
+              <span class="siemsi-stick s3"></span>
+              <span class="siemsi-stick s4"></span>
+              <span class="siemsi-stick s5"></span>
+            </div>
+            <div class="siemsi-cylinder">
+              <div class="siemsi-cylinder__band">เซียมซี</div>
+              <div class="siemsi-cylinder__sub">คืนวันเพ็ญ</div>
+            </div>
+          </div>
+          <p id="fortuneStageHint" class="fortune-hint">
+            ตั้งจิตอธิษฐาน แล้วกดปุ่มด้านล่างหรือแตะกระบอกเพื่อเขย่าเซียมซีรับคำทำนายคืนวันเพ็ญ
+          </p>
+          <button id="shakeFortuneBtn" class="btn btn--gold btn--full" type="button">
+            🔮 เขย่าเซียมซีรับคำทำนาย!
+          </button>
+        </div>
+
+        <!-- Stage 2: Drawn Fortune Result -->
+        <div id="fortuneResultStage" class="fortune-result hidden">
+          <div class="fortune-result__header">
+            <div class="fortune-seal">
+              <span>ใบที่</span>
+              <strong id="fortuneNoThai">๑</strong>
+            </div>
+            <div class="fortune-head-text">
+              <span id="fortuneGrade" class="fortune-grade-pill">🌟 ดวงเฮง</span>
+              <h3 id="fortuneTitle" class="fortune-title">—</h3>
+            </div>
+          </div>
+
+          <blockquote id="fortuneVerse" class="fortune-verse"></blockquote>
+
+          <div class="fortune-details-grid">
+            <div class="fortune-detail-box">
+              <span class="fortune-detail-box__label">💼 การงาน &amp; การเงิน</span>
+              <p id="fortuneCareer"></p>
+            </div>
+            <div class="fortune-detail-box">
+              <span class="fortune-detail-box__label">♥ ความรัก</span>
+              <p id="fortuneLove"></p>
+            </div>
+            <div class="fortune-detail-box fortune-detail-box--wide">
+              <span class="fortune-detail-box__label">✨ สีมงคล &amp; เลขนำโชค</span>
+              <p id="fortuneLucky"></p>
+            </div>
+          </div>
+
+          <div id="fortuneTip" class="fortune-tip"></div>
+
+          <div class="fortune-actions">
+            <button id="downloadFortuneBtn" class="btn btn--gold" type="button">⬇️ บันทึกใบเซียมซี PNG</button>
+            <button id="reshakeFortuneBtn" class="btn btn--ghost" type="button">🔮 เขย่าอีกครั้ง</button>
+          </div>
+        </div>
+        <canvas id="fortuneExportCanvas" width="1080" height="1350" class="hidden"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Snackbar Notification -->
+  <div id="snackbar" class="snackbar hidden" role="status" aria-live="polite"></div>
+
+  <!-- ========================================================= -->
+  <!-- FANTASY GODZILLA BASKETBALL SHOT OVERLAY HUD              -->
+  <!-- ========================================================= -->
+  <div id="kaijuHud" class="kaiju-hud hidden" aria-live="polite">
+    <div class="kaiju-hud__top">
+      <div class="kaiju-banner">
+        <span class="kaiju-banner__badge">🦖 FANTASY SHOT MODE</span>
+        <span id="kaijuStatusText" class="kaiju-banner__text">ก็อตซิลล่าผุดขึ้นกลางสายน้ำ! เล็งที่ห่วงแล้วชูตกระทงเลย</span>
+      </div>
+    </div>
+
+    <div class="kaiju-hud__bottom">
+      <div class="kaiju-meter-wrap" id="kaijuMeterWrap">
+        <div class="kaiju-meter-label">
+          <span>จังหวะชูต (Sweet Spot)</span>
+          <span id="kaijuLockLabel" class="kaiju-lock-tag">เล็งห่วงหรือกดชูตช่วงสีทอง!</span>
+        </div>
+        <div class="kaiju-meter-track">
+          <div class="kaiju-meter-sweet"></div>
+          <div id="kaijuMeterNeedle" class="kaiju-meter-needle"></div>
+        </div>
+      </div>
+
+      <div class="kaiju-controls">
+        <button id="kaijuSoundBtn" class="btn btn--ghost kaiju-mini-btn" type="button">
+          🔊 เปิดเสียงคำราม
+        </button>
+        <button id="kaijuShootBtn" class="btn btn--kaiju" type="button">
+          🏀 ชูตกระทงลงห่วง!
+        </button>
+        <button id="kaijuSkipBtn" class="btn btn--ghost kaiju-mini-btn" type="button">
+          ข้ามไปลอยเลย →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- INTERACTIVE SKY LANTERN THROW OVERLAY HUD                 -->
+  <!-- ========================================================= -->
+  <div id="lanternHud" class="kaiju-hud hidden" aria-live="polite">
+    <div class="kaiju-hud__top">
+      <div class="kaiju-banner lantern-banner">
+        <span class="kaiju-banner__badge lantern-banner__badge">🏮 โหมดโยนโคมลอย</span>
+        <span class="kaiju-banner__text">ปัดโคมขึ้นฟ้า หรือกดปุ่มด้านล่างเพื่อโยนโคมลอยขึ้นสู่คืนวันเพ็ญ!</span>
+      </div>
+    </div>
+
+    <div class="kaiju-hud__bottom">
+      <div class="kaiju-controls">
+        <button id="lanternThrowBtn" class="btn btn--lantern" type="button">
+          🏮 โยนโคมขึ้นฟ้า!
+        </button>
+        <button id="lanternCancelBtn" class="btn btn--ghost kaiju-mini-btn" type="button">
+          ✕ ยกเลิก
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- FANTASY FIREWORK CANNON (UFO & GOLDEN NAGA) OVERLAY HUD   -->
+  <!-- ========================================================= -->
+  <div id="fireworkHud" class="kaiju-hud hidden" aria-live="polite">
+    <div class="kaiju-hud__top">
+      <div class="kaiju-banner firework-banner">
+        <span class="kaiju-banner__badge firework-banner__badge">🎆 แท่นยิงพลุคืนวันเพ็ญ</span>
+        <span class="kaiju-banner__text">คลิกท้องฟ้าหรือกดยิง (ลุ้นโดน UFO!) · หรือชาร์จพลังปลุกพญานาคแสงทอง</span>
+      </div>
+    </div>
+
+    <div class="kaiju-hud__bottom">
+      <div class="kaiju-meter-wrap firework-meter-wrap">
+        <div class="kaiju-meter-label">
+          <span>🐉 พลังปลุกพญานาคแสงทอง</span>
+          <span id="nagaChargeLabel" class="naga-charge-tag">กดค้างหรือกดปุ่มพญานาคเพื่อชาร์จ!</span>
+        </div>
+        <div class="kaiju-meter-track">
+          <div id="nagaChargeFill" class="naga-charge-fill"></div>
+        </div>
+      </div>
+
+      <div class="kaiju-controls">
+        <button id="fireUfoBtn" class="btn btn--ufo" type="button">
+          🛸 ยิงพลุ! (ลุ้นโดน UFO)
+        </button>
+        <button id="chargeNagaBtn" class="btn btn--naga" type="button">
+          🐉 ชาร์จปลุกพญานาค!
+        </button>
+        <button id="fireworkCloseBtn" class="btn btn--ghost kaiju-mini-btn" type="button">
+          ✕ ปิดแท่นยิง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
