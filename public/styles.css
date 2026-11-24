@@ -452,7 +452,15 @@ body.zen-mode .zen-restore-btn {
   color: var(--text-secondary);
 }
 
-/* ---------- Live Activity Feed ---------- */
+/* ---------- Live Activity Feed (Disabled per user request) ---------- */
+.live-feed,
+#liveFeed,
+.feed-chip,
+#soundToggleBtn {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 .live-feed {
   position: fixed;
   left: max(18px, env(safe-area-inset-left));

@@ -199,17 +199,9 @@ async function init() {
     onHover: handleCanvasHover,
     onSelectKrathong: (krathong) => openWishInspector(krathong.id, krathong),
     onSkyClick: (xRatio) => triggerLantern(xRatio),
-    onKidCaught: () => {
-      sound.playBlessChime();
-      showSnackbar('😂 จับเด็กแอบว่ายเก็บเหรียญได้คาหนังคาเขา!');
-    },
-    onCrocAttack: () => {
-      showSnackbar('⚠️ จ๊ากกกก!! จระเข้แม่น้ำโผล่มาแล้ววว!! 🐊');
-    },
-    onCrocChomp: () => {
-      sound.playCrocChomp();
-      showSnackbar('🐊 งั่มมม!! จระเข้ฮุบเด็กเก็บเหรียญดำน้ำไปซะแล้ว!');
-    },
+    onKidCaught: () => {},
+    onCrocAttack: () => {},
+    onCrocChomp: () => {},
   });
   scene.setMyKrathongIds(state.myKrathongIds);
   scene.start();
@@ -1325,25 +1317,7 @@ function drawMiniNightWaterBackdrop(ctx, w, h, now, locId) {
 }
 
 function pushLiveFeed(message, onClick = null, duration = 5600) {
-  const chip = document.createElement('div');
-  chip.className = 'feed-chip';
-  chip.textContent = message;
-  if (onClick) {
-    chip.addEventListener('click', () => {
-      onClick();
-      chip.remove();
-    });
-  }
-  els.liveFeed.appendChild(chip);
-
-  while (els.liveFeed.children.length > 2) {
-    els.liveFeed.firstElementChild.remove();
-  }
-
-  setTimeout(() => {
-    chip.classList.add('leaving');
-    setTimeout(() => chip.remove(), 380);
-  }, duration);
+  // Activity toast feed completely disabled per user request
 }
 
 function showSnackbar(message) {
@@ -1450,14 +1424,15 @@ function bindUIEvents() {
   els.searchOpenBtn.addEventListener('click', () => openExploreDrawer('search'));
   els.statsPillBtn.addEventListener('click', () => openExploreDrawer('eco'));
 
-  // Soundscape Toggle
-  els.soundToggleBtn.addEventListener('click', () => {
-    const isOn = sound.toggle();
-    els.soundToggleBtn.classList.toggle('active', isOn);
-    els.soundIconOn.classList.toggle('hidden', !isOn);
-    els.soundIconOff.classList.toggle('hidden', isOn);
-    showSnackbar(isOn ? 'เปิดเสียงสายน้ำและดนตรีไทยร่วมสมัยแล้ว 🎶' : 'ปิดเสียงบรรยากาศแล้ว');
-  });
+  // Soundscape Toggle (Disabled per user request)
+  if (els.soundToggleBtn) {
+    els.soundToggleBtn.addEventListener('click', () => {
+      const isOn = sound.toggle();
+      els.soundToggleBtn.classList.toggle('active', isOn);
+      if (els.soundIconOn) els.soundIconOn.classList.toggle('hidden', !isOn);
+      if (els.soundIconOff) els.soundIconOff.classList.toggle('hidden', isOn);
+    });
+  }
 
   // Zen Mode Toggle
   els.zenModeBtn.addEventListener('click', () => setZenMode(true));
@@ -1483,9 +1458,9 @@ function bindUIEvents() {
     els.kaijuSoundBtn.addEventListener('click', () => {
       if (!sound.enabled) {
         sound.start();
-        els.soundToggleBtn.classList.add('active');
-        els.soundIconOn.classList.remove('hidden');
-        els.soundIconOff.classList.add('hidden');
+        if (els.soundToggleBtn) els.soundToggleBtn.classList.add('active');
+        if (els.soundIconOn) els.soundIconOn.classList.remove('hidden');
+        if (els.soundIconOff) els.soundIconOff.classList.add('hidden');
       }
       els.kaijuSoundBtn.classList.add('hidden');
       sound.playKaijuRoar();
