@@ -1574,6 +1574,14 @@ function bindUIEvents() {
       scene.releaseNagaCharge();
     }
   });
+
+  // Reset any iOS Safari / in-app viewport displacement when closing virtual keyboard
+  document.addEventListener('focusout', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+    }
+  });
 }
 
 function escapeHtml(str) {

@@ -73,7 +73,9 @@ textarea {
 }
 
 input,
-textarea {
+textarea,
+select {
+  font-size: 16px !important; /* Prevents iOS Safari & in-app browser auto-zoom on focus */
   -webkit-touch-callout: default !important;
   -webkit-user-select: text !important;
   user-select: text !important;
@@ -1057,7 +1059,7 @@ body.zen-mode .zen-restore-btn {
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(5, 9, 22, 0.65);
   color: var(--text-primary);
-  font-size: 0.88rem;
+  font-size: 16px !important; /* Minimum 16px to prevent iOS auto-zoom */
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
