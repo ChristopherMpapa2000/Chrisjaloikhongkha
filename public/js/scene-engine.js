@@ -500,8 +500,10 @@ export class RiverSceneEngine {
   _getEntityScreenPos(entity) {
     const horizonY = this.height * 0.44;
     const waterH = this.height - horizonY;
-    const y = horizonY + 26 + entity.depth * (waterH - 118);
-    const scale = 0.46 + entity.depth * 0.72;
+    const y = horizonY + 22 + entity.depth * (waterH - 108);
+    // Responsive scale so krathongs look natural on mobile portrait viewports
+    const baseScale = clamp(this.width / 960, 0.68, 1.0);
+    const scale = (0.42 + entity.depth * 0.7) * baseScale;
     return { x: entity.x, y, scale };
   }
 
@@ -510,8 +512,9 @@ export class RiverSceneEngine {
     const sorted = [...this.krathongEntities].sort((a, b) => b.depth - a.depth);
     for (const entity of sorted) {
       const { x, y, scale } = this._getEntityScreenPos(entity);
-      const hitRx = 52 * scale;
-      const hitRy = 42 * scale;
+      // Ensure generous touch tap target on mobile screens
+      const hitRx = Math.max(30, 52 * scale);
+      const hitRy = Math.max(26, 42 * scale);
       const dx = (px - x) / hitRx;
       const dy = (py - (y - 10 * scale)) / hitRy;
       if (dx * dx + dy * dy <= 1) {
@@ -613,7 +616,8 @@ export class RiverSceneEngine {
       } else {
         const isHovered = this.hoveredEntity === entity;
         const speedMul = isHovered ? 0.18 : 1;
-        entity.x += entity.speed * loc.riverSpeed * speedMul * dt;
+        const mobileSpeedFactor = this.width < 600 ? 0.72 : 1;
+        entity.x += entity.speed * loc.riverSpeed * speedMul * mobileSpeedFactor * dt;
         if (entity.x > this.width + 90) {
           entity.x = -90;
         }
@@ -1078,8 +1082,8 @@ export class RiverSceneEngine {
   }
 
   _drawWatArunSkyline(ctx, w, horizonY, now, isReflection) {
-    const cx = w * 0.34;
-    const scale = clamp(w / 1280, 0.58, 1.15);
+    const cx = w * (w < 600 ? 0.42 : 0.34);
+    const scale = clamp(w / 1280, 0.48, 1.15);
 
     // Distant Bangkok horizon buildings (right side) with subtle warm architectural lights
     const bldg = [
