@@ -780,7 +780,7 @@ function beginGodzillaShotSequence(created) {
   updateEmptyRiverPrompt(1);
   document.body.classList.add('kaiju-mode');
   els.kaijuHud.classList.remove('hidden');
-  els.kaijuSoundBtn.classList.toggle('hidden', sound.enabled);
+  if (els.kaijuSoundBtn) els.kaijuSoundBtn.classList.toggle('hidden', sound.enabled);
   els.kaijuShootBtn.disabled = true;
   els.kaijuStatusText.textContent = 'ก็อตซิลล่ากำลังผุดขึ้นมาจากใต้สายน้ำ...';
   if (els.kaijuMeterWrap) els.kaijuMeterWrap.classList.remove('hidden');
@@ -790,7 +790,7 @@ function beginGodzillaShotSequence(created) {
     onPhaseChange: (phase) => {
       if (phase === 'aiming') {
         els.kaijuShootBtn.disabled = false;
-        els.kaijuStatusText.textContent = 'ลากนิ้วถอยหลังเพื่อเล็ง แล้วปล่อยเพื่อชูต หรือกดปุ่มชูตด้านล่าง';
+        els.kaijuStatusText.textContent = 'แตะลากกระทงถอยหลังเพื่อเล็ง แล้วปล่อยเพื่อชูต!';
       } else if (phase === 'flying') {
         els.kaijuShootBtn.disabled = true;
         els.kaijuStatusText.textContent = 'กระทงพุ่งขึ้นสู่ฟ้าแล้ว! ลุ้นลงห่วงกัน...';
@@ -1476,17 +1476,21 @@ function bindUIEvents() {
 
   // Fantasy Godzilla Shot Controls
   els.kaijuShootBtn.addEventListener('click', () => scene.shootGodzillaKrathong());
-  els.kaijuSkipBtn.addEventListener('click', () => scene.skipGodzillaShot());
-  els.kaijuSoundBtn.addEventListener('click', () => {
-    if (!sound.enabled) {
-      sound.start();
-      els.soundToggleBtn.classList.add('active');
-      els.soundIconOn.classList.remove('hidden');
-      els.soundIconOff.classList.add('hidden');
-    }
-    els.kaijuSoundBtn.classList.add('hidden');
-    sound.playKaijuRoar();
-  });
+  if (els.kaijuSkipBtn) {
+    els.kaijuSkipBtn.addEventListener('click', () => scene.skipGodzillaShot());
+  }
+  if (els.kaijuSoundBtn) {
+    els.kaijuSoundBtn.addEventListener('click', () => {
+      if (!sound.enabled) {
+        sound.start();
+        els.soundToggleBtn.classList.add('active');
+        els.soundIconOn.classList.remove('hidden');
+        els.soundIconOff.classList.add('hidden');
+      }
+      els.kaijuSoundBtn.classList.add('hidden');
+      sound.playKaijuRoar();
+    });
+  }
 
   els.partCategoryTabs.addEventListener('click', (e) => {
     const btn = e.target.closest('.cat-tab');

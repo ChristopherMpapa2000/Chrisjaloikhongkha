@@ -124,6 +124,12 @@ export class GodzillaShotController {
 
   handlePointerDown(px, py) {
     if (!this.active || this.phase !== 'aiming') return false;
+
+    // ONLY allow dragging on/near the krathong itself!
+    const hitDist = Math.hypot(px - this.ballStartX, py - (this.ballStartY - 6));
+    const hitRadius = Math.max(85, 85 * this.scale);
+    if (hitDist > hitRadius) return false;
+
     this.isDragging = true;
     this.dragStart = { x: px, y: py };
     this.dragCurrent = { x: px, y: py };
@@ -147,8 +153,8 @@ export class GodzillaShotController {
     this.isDragging = false;
 
     const pullDown = Math.max(0, (this.dragCurrent ? this.dragCurrent.y : py) - this.dragStart.y);
-    // Deliberate pull-down slingshot release (> 16px pull)
-    if (pullDown > 16) {
+    // Release after dragging down launches the shot immediately!
+    if (pullDown > 10) {
       if (this.aimIsLocked) {
         // Guaranteed swish if trajectory passed cleanly through hoop
         const perfect = this._solvePerfectShot(this.ballStartX, this.ballStartY, this.hoopX, this.hoopY - 12, 1.2);
@@ -156,8 +162,9 @@ export class GodzillaShotController {
       } else {
         this._launchBall(this.aimVelocity.vx, this.aimVelocity.vy);
       }
+      return true;
     }
-    return true;
+    return false;
   }
 
   _updateSlingshotAim(px, py) {
@@ -332,19 +339,13 @@ export class GodzillaShotController {
       this.meterPhase += dt;
       this.jawOpen = 0.14 + Math.sin(now * 0.004) * 0.06;
 
-      if (!this.pointerAimActive) {
-        // Sync idle preview arc with oscillating power meter
-        const meterVal = 0.5 + 0.5 * Math.sin(this.meterPhase * 2.5);
-        const perfect = this._solvePerfectShot(this.ballStartX, this.ballStartY, this.hoopX, this.hoopY - 12, 1.24);
-        const err = (meterVal - 0.5) * 2;
-        const damped = Math.abs(err) < 0.36 ? err * 0.12 : err * 0.52;
-        this.aimVelocity = {
-          vx: perfect.vx * (1 + damped * 0.22),
-          vy: perfect.vy * (1 - Math.abs(damped) * 0.08),
-        };
-        this.aimIsLocked = Math.abs(err) < 0.36;
+      if (this.isDragging && this.dragCurrent) {
+        this._updateSlingshotAim(this.dragCurrent.x, this.dragCurrent.y);
       } else {
-        this._updatePointerAim(this.pointerX, this.pointerY);
+        // Idle: baseline trajectory ready for button press
+        const perfect = this._solvePerfectShot(this.ballStartX, this.ballStartY, this.hoopX, this.hoopY - 12, 1.24);
+        this.aimVelocity = perfect;
+        this.aimIsLocked = true;
       }
 
       if (this.callbacks.onMeterUpdate) {
@@ -621,9 +622,11 @@ export class GodzillaShotController {
     const ease = 1 - Math.pow(1 - this.emergeProgress, 3);
     const riseOffset = (1 - ease) * 260 * s;
 
-    // 1. Dotted glowing trajectory arc while aiming
+    // 1. Dotted glowing trajectory arc while dragging to aim
     if (this.phase === 'aiming') {
-      this._drawAimTrajectory(ctx, now);
+      if (this.isDragging) {
+        this._drawAimTrajectory(ctx, now);
+      }
       this._drawReadyKrathong(ctx, now);
     }
 
@@ -1084,7 +1087,7 @@ export class GodzillaShotController {
       showReflection: false,
       showRipples: false,
       isHighlighted: true,
-      label: this.isDragging ? (this.aimIsLocked ? '✦ ตรงห่วงแล้ว! ปล่อยเพื่อชูต' : '🎯 ลากลงเพื่อเล็ง') : '🏀 กระทงพร้อมชูต!',
+      label: this.isDragging ? (this.aimIsLocked ? '✦ ตรงห่วงแล้ว! ปล่อยเพื่อชูต' : '🎯 ลากถอยหลังเพื่อเล็ง') : '🏀 ลากกระทงเพื่อชูต!',
       phase: 0,
     });
   }

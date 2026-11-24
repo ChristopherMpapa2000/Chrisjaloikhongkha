@@ -92,7 +92,7 @@ textarea {
   display: block;
   z-index: 1;
   cursor: default;
-  touch-action: manipulation;
+  touch-action: none !important;
 }
 
 /* ---------- HUD Layer ---------- */
@@ -1780,6 +1780,7 @@ body.zen-mode .zen-restore-btn {
   inset: 0;
   z-index: 22;
   pointer-events: none;
+  touch-action: none;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

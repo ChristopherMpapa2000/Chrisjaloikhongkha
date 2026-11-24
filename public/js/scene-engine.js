@@ -392,6 +392,13 @@ export class RiverSceneEngine {
   }
 
   _bindEvents() {
+    // Ensure mobile browsers never drag or rubber-band the screen during interactive modes
+    this.canvas.addEventListener('touchmove', (e) => {
+      if (this.godzillaShot.active || this.lanternRescue.throwMode || this.fireworkFantasy.launcherOpen) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
     window.addEventListener('resize', () => this.resize());
 
     this.canvas.addEventListener('pointerdown', (e) => {
@@ -401,7 +408,10 @@ export class RiverSceneEngine {
       const px = (e.clientX - rect.left) * scaleX;
       const py = (e.clientY - rect.top) * scaleY;
       if (this.godzillaShot.active) {
-        this.godzillaShot.handlePointerDown(px, py);
+        if (this.godzillaShot.handlePointerDown(px, py)) {
+          e.preventDefault();
+          try { this.canvas.setPointerCapture(e.pointerId); } catch {}
+        }
         return;
       }
       if (this.lanternRescue.throwMode) {
@@ -421,7 +431,10 @@ export class RiverSceneEngine {
       const px = (e.clientX - rect.left) * scaleX;
       const py = (e.clientY - rect.top) * scaleY;
       if (this.godzillaShot.active) {
-        this.godzillaShot.handlePointerUp(px, py);
+        if (this.godzillaShot.handlePointerUp(px, py)) {
+          e.preventDefault();
+        }
+        try { this.canvas.releasePointerCapture(e.pointerId); } catch {}
         return;
       }
       if (this.lanternRescue.throwMode) {
@@ -440,7 +453,9 @@ export class RiverSceneEngine {
       if (this.godzillaShot.active) {
         this.hoveredEntity = null;
         this.canvas.style.cursor = this.godzillaShot.phase === 'aiming' ? 'crosshair' : 'default';
-        this.godzillaShot.handlePointerMove(px, py);
+        if (this.godzillaShot.handlePointerMove(px, py)) {
+          e.preventDefault();
+        }
         if (this.callbacks.onHover) this.callbacks.onHover(null, 0, 0);
         return;
       }
