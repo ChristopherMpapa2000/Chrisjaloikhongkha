@@ -117,32 +117,27 @@ export class GodzillaShotController {
    */
   shootFromButton() {
     if (!this.active || this.phase !== 'aiming') return;
-    // Compute velocity from oscillating sweet-spot meter so clicking near center = guaranteed swish!
-    const meterVal = 0.5 + 0.5 * Math.sin(this.meterPhase * 2.5); // 0..1 (0.5 is bullseye!)
-    const perfect = this._solvePerfectShot(this.ballStartX, this.ballStartY, this.hoopX, this.hoopY - 12, 1.24);
-    const error = (meterVal - 0.5) * 2; // -1..1
-    // Generous sweet spot (|error| < 0.36 snaps gracefully into swish zone!)
-    const dampedErr = Math.abs(error) < 0.36 ? error * 0.14 : error * 0.62;
-    this._launchBall(perfect.vx * (1 + dampedErr * 0.22), perfect.vy * (1 - Math.abs(dampedErr) * 0.08));
+    // Guaranteed perfect swish shot directly into Godzilla's hoop!
+    const perfect = this._solvePerfectShot(this.ballStartX, this.ballStartY, this.hoopX, this.hoopY - 12, 1.2);
+    this._launchBall(perfect.vx, perfect.vy);
   }
 
   handlePointerDown(px, py) {
     if (!this.active || this.phase !== 'aiming') return false;
     this.isDragging = true;
     this.dragStart = { x: px, y: py };
+    this.dragCurrent = { x: px, y: py };
     this.pointerAimActive = true;
-    this.pointerX = px;
-    this.pointerY = py;
-    this._updatePointerAim(px, py);
+    this._updateSlingshotAim(px, py);
     return true;
   }
 
   handlePointerMove(px, py) {
     if (!this.active || this.phase !== 'aiming') return false;
+    if (!this.isDragging) return false;
+    this.dragCurrent = { x: px, y: py };
     this.pointerAimActive = true;
-    this.pointerX = px;
-    this.pointerY = py;
-    this._updatePointerAim(px, py);
+    this._updateSlingshotAim(px, py);
     return true;
   }
 
@@ -151,30 +146,45 @@ export class GodzillaShotController {
     if (!this.isDragging) return false;
     this.isDragging = false;
 
-    this._updatePointerAim(px, py);
-    // Gentle aim assist if user clicked close to the hoop so it feels responsive & rewarding!
-    if (this.aimIsLocked) {
-      const perfect = this._solvePerfectShot(this.ballStartX, this.ballStartY, this.hoopX, this.hoopY - 12, 1.22);
-      this._launchBall(
-        this.aimVelocity.vx * 0.35 + perfect.vx * 0.65,
-        this.aimVelocity.vy * 0.35 + perfect.vy * 0.65
-      );
-    } else {
-      this._launchBall(this.aimVelocity.vx, this.aimVelocity.vy);
+    const pullDown = Math.max(0, (this.dragCurrent ? this.dragCurrent.y : py) - this.dragStart.y);
+    // Deliberate pull-down slingshot release (> 16px pull)
+    if (pullDown > 16) {
+      if (this.aimIsLocked) {
+        // Guaranteed swish if trajectory passed cleanly through hoop
+        const perfect = this._solvePerfectShot(this.ballStartX, this.ballStartY, this.hoopX, this.hoopY - 12, 1.2);
+        this._launchBall(perfect.vx, perfect.vy);
+      } else {
+        this._launchBall(this.aimVelocity.vx, this.aimVelocity.vy);
+      }
     }
     return true;
   }
 
-  _updatePointerAim(px, py) {
-    // Allow intuitive point-to-aim: wherever cursor points becomes the target of the arc!
-    const targetX = clamp(px, this.engine.width * 0.08, this.engine.width * 0.92);
-    const targetY = clamp(py, this.engine.height * 0.08, this.engine.height * 0.72);
-    const flightTime = clamp(0.86 + Math.hypot(targetX - this.ballStartX, targetY - this.ballStartY) / 860, 0.84, 1.32);
-    const solved = this._solvePerfectShot(this.ballStartX, this.ballStartY, targetX, targetY, flightTime);
-    this.aimVelocity = solved;
+  _updateSlingshotAim(px, py) {
+    // Slingshot pull down: pulling finger DOWN from drag start increases launch power and arc height
+    const pullDown = Math.max(0, py - this.dragStart.y);
+    const pullSide = px - this.dragStart.x;
+
+    // Calculate baseline trajectory needed to reach the hoop
+    const perfect = this._solvePerfectShot(this.ballStartX, this.ballStartY, this.hoopX, this.hoopY - 10, 1.2);
+    const baseSpeed = Math.hypot(perfect.vx, perfect.vy);
+    const baseAngle = Math.atan2(perfect.vy, perfect.vx);
+
+    // Power ratio: ideal pull distance is ~80px
+    const powerRatio = clamp(0.35 + (pullDown / 80) * 0.65, 0.35, 1.85);
+    // Horizontal tilt: moving finger left/right tilts launch angle smoothly
+    const angleTilt = clamp(pullSide / 160, -0.38, 0.38);
+
+    const speed = baseSpeed * powerRatio;
+    const angle = baseAngle - angleTilt;
+
+    this.aimVelocity = {
+      vx: speed * Math.cos(angle),
+      vy: speed * Math.sin(angle),
+    };
 
     // Check if the predicted trajectory passes cleanly through Godzilla's hoop
-    this.aimIsLocked = this._trajectoryHitsHoop(this.ballStartX, this.ballStartY, solved.vx, solved.vy);
+    this.aimIsLocked = this._trajectoryHitsHoop(this.ballStartX, this.ballStartY, this.aimVelocity.vx, this.aimVelocity.vy);
   }
 
   _solvePerfectShot(x0, y0, tx, ty, T) {
@@ -1033,15 +1043,32 @@ export class GodzillaShotController {
       ctx.font = '600 13px Prompt, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = `rgba(254, 240, 138, ${pulse})`;
-      ctx.fillText('✦ ลงห่วงแน่! คลิกชูตเลย!', this.hoopX, this.hoopY - 26 * this.scale);
+      ctx.fillText(this.isDragging ? '✦ ตรงห่วงแล้ว! ปล่อยเพื่อชูต!' : '✦ ตรงห่วงแล้ว! กดชูตเลย!', this.hoopX, this.hoopY - 26 * this.scale);
     }
     ctx.restore();
   }
 
   _drawReadyKrathong(ctx, now) {
     const pulse = 1 + Math.sin(now * 0.006) * 0.04;
-    const x = this.ballStartX;
-    const y = this.ballStartY;
+    const isPulling = this.isDragging && this.dragCurrent && (this.dragCurrent.y - this.dragStart.y > 6);
+    const pullOffsetY = isPulling ? clamp((this.dragCurrent.y - this.dragStart.y) * 0.15, 0, 18) : 0;
+    const pullOffsetX = isPulling ? clamp((this.dragCurrent.x - this.dragStart.x) * 0.12, -14, 14) : 0;
+    const x = this.ballStartX + pullOffsetX;
+    const y = this.ballStartY + pullOffsetY;
+
+    // Slingshot elastic tension line while dragging downwards
+    if (isPulling) {
+      ctx.save();
+      ctx.strokeStyle = this.aimIsLocked ? 'rgba(254, 240, 138, 0.85)' : 'rgba(56, 189, 248, 0.7)';
+      ctx.lineWidth = 2.4;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(this.ballStartX - 34 * this.scale, this.ballStartY + 2);
+      ctx.lineTo(x, y + 6);
+      ctx.lineTo(this.ballStartX + 34 * this.scale, this.ballStartY + 2);
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // Mystical golden basketball launch ring
     ctx.save();
@@ -1049,7 +1076,7 @@ export class GodzillaShotController {
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 6]);
     ctx.beginPath();
-    ctx.arc(x, y - 6, 56 * pulse, 0, Math.PI * 2);
+    ctx.arc(this.ballStartX, this.ballStartY - 6, 56 * pulse, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
 
@@ -1057,7 +1084,7 @@ export class GodzillaShotController {
       showReflection: false,
       showRipples: false,
       isHighlighted: true,
-      label: '🏀 กระทงพร้อมชูต!',
+      label: this.isDragging ? (this.aimIsLocked ? '✦ ตรงห่วงแล้ว! ปล่อยเพื่อชูต' : '🎯 ลากลงเพื่อเล็ง') : '🏀 กระทงพร้อมชูต!',
       phase: 0,
     });
   }

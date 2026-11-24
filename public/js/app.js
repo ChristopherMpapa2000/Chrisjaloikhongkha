@@ -772,29 +772,31 @@ function beginGodzillaShotSequence(created) {
   els.kaijuSoundBtn.classList.toggle('hidden', sound.enabled);
   els.kaijuShootBtn.disabled = true;
   els.kaijuStatusText.textContent = 'ก็อตซิลล่ากำลังผุดขึ้นมาจากใต้สายน้ำ...';
-  els.kaijuMeterWrap.classList.remove('hidden');
+  if (els.kaijuMeterWrap) els.kaijuMeterWrap.classList.remove('hidden');
   sound.playKaijuRoar();
 
   scene.startGodzillaShot(created, {
     onPhaseChange: (phase) => {
       if (phase === 'aiming') {
         els.kaijuShootBtn.disabled = false;
-        els.kaijuStatusText.textContent = 'ขยับเมาส์/แตะเล็งที่ห่วง หรือกด "ชูตกระทง!" (Spacebar)';
+        els.kaijuStatusText.textContent = 'ลากนิ้วถอยหลังเพื่อเล็ง แล้วปล่อยเพื่อชูต หรือกดปุ่มชูตด้านล่าง';
       } else if (phase === 'flying') {
         els.kaijuShootBtn.disabled = true;
         els.kaijuStatusText.textContent = 'กระทงพุ่งขึ้นสู่ฟ้าแล้ว! ลุ้นลงห่วงกัน...';
       } else if (phase === 'swish') {
         els.kaijuShootBtn.disabled = true;
-        els.kaijuMeterWrap.classList.add('hidden');
+        if (els.kaijuMeterWrap) els.kaijuMeterWrap.classList.add('hidden');
         els.kaijuStatusText.textContent = '🔥 SWISH!! ก็อตซิลล่าคำรามพ่นลำแสงฉลองคำอธิษฐานของคุณ!';
       } else if (phase === 'submerging') {
         els.kaijuStatusText.textContent = 'กระทงลงสู่สายน้ำเรียบร้อย ก็อตซิลล่ากำลังดำกลับลงแม่น้ำ...';
       }
     },
     onMeterUpdate: (val, isLocked) => {
-      els.kaijuMeterNeedle.style.left = `${(val * 100).toFixed(1)}%`;
-      els.kaijuLockLabel.textContent = isLocked ? '✦ ตรงห่วงแล้ว! ชูตเลย!' : 'เล็งห่วงหรือกดชูตช่วงสีทอง';
-      els.kaijuLockLabel.classList.toggle('locked', isLocked);
+      if (els.kaijuMeterNeedle) els.kaijuMeterNeedle.style.left = `${(val * 100).toFixed(1)}%`;
+      if (els.kaijuLockLabel) {
+        els.kaijuLockLabel.textContent = isLocked ? '✦ ตรงห่วงแล้ว! ชูตเลย!' : 'เล็งห่วงหรือกดชูตช่วงสีทอง';
+        els.kaijuLockLabel.classList.toggle('locked', isLocked);
+      }
     },
     onShoot: () => {
       sound.playShootWhoosh();
@@ -1378,6 +1380,19 @@ function setZenMode(enabled) {
 }
 
 function bindUIEvents() {
+  // Prevent system copy/magnifier popup and blue selection highlight on long press
+  window.addEventListener('contextmenu', (e) => {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  window.addEventListener('selectstart', (e) => {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  });
+
   // Primary Dock & Header Actions
   els.openStudioBtn.addEventListener('click', openStudioModal);
   els.emptyRiverCtaBtn.addEventListener('click', openStudioModal);

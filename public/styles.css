@@ -41,6 +41,10 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 html,
@@ -56,6 +60,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -68,7 +74,9 @@ textarea {
 
 input,
 textarea {
-  user-select: text;
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
 }
 
 .hidden {
@@ -1825,15 +1833,10 @@ body.zen-mode .zen-restore-btn {
   max-width: 560px;
 }
 
-.kaiju-meter-wrap {
-  width: 100%;
-  max-width: 400px;
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: rgba(8, 15, 34, 0.78);
-  border: 1px solid rgba(247, 214, 138, 0.24);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+.kaiju-meter-wrap,
+#kaijuMeterWrap,
+.kaiju-meter-container {
+  display: none !important;
 }
 
 .kaiju-meter-label {
@@ -2574,21 +2577,45 @@ body.zen-mode .zen-restore-btn {
   }
 
   /* Studio Modal Mobile Layout */
+  .modal-card--studio {
+    max-height: 88dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
   .modal-card--studio .studio-layout {
     grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 12px 16px 18px;
+    gap: 10px;
+    padding: 10px 14px 0;
   }
 
   .preview-stage {
     aspect-ratio: 16 / 9;
-    max-height: 155px;
+    max-height: 135px;
     border-radius: 14px;
+  }
+
+  .preview-summary {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 5px;
+    padding: 2px 0 4px;
+    mask-image: linear-gradient(to right, black 82%, transparent);
+    -webkit-mask-image: linear-gradient(to right, black 82%, transparent);
+  }
+
+  .summary-tag {
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .studio-steps {
     gap: 6px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
   .step-tab {
@@ -2611,7 +2638,11 @@ body.zen-mode .zen-restore-btn {
   .part-options-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
+  }
+
+  .part-options-grid .part-card:last-child:nth-child(odd) {
+    grid-column: span 2;
   }
 
   .part-card {
@@ -2634,6 +2665,26 @@ body.zen-mode .zen-restore-btn {
   .part-card__desc {
     font-size: 0.66rem;
     line-height: 1.25;
+  }
+
+  /* Sticky Footer Actions inside Studio Modal */
+  .studio-footer-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 25;
+    margin: 8px -14px 0;
+    padding: 10px 14px max(14px, env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, rgba(13, 19, 41, 0.92) 0%, rgba(8, 12, 26, 0.98) 100%);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid rgba(247, 214, 138, 0.22);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+  }
+
+  .studio-footer-actions .btn {
+    height: 44px;
+    font-size: 0.9rem;
+    border-radius: var(--radius-pill);
   }
 
   .wish-presets {
