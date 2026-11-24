@@ -366,23 +366,27 @@
 
       <div class="ecard-body">
         <div class="ecard-frame">
-          <canvas id="ecardCanvas" width="1080" height="1350"></canvas>
+          <canvas id="ecardCanvas" width="1080" height="1350" style="display: none;"></canvas>
+          <img id="ecardImg" alt="การ์ดที่ระลึกวันลอยกระทง" class="ecard-img" />
         </div>
         <div class="ecard-sidebar">
           <p class="ecard-desc">
-            บันทึกภาพความละเอียดสูง (1080×1350 px) เหมาะสำหรับแชร์ลง Instagram, Facebook หรือส่งต่อคำอวยพรให้คนสำคัญ
+            บันทึกภาพความละเอียดสูง (1080×1350 px) คมชัด เหมาะสำหรับเซฟลงเครื่อง แชร์ลงสตอรี่ Instagram, Facebook หรือส่งให้คนสำคัญ
           </p>
           <div class="ecard-actions">
             <button id="downloadEcardBtn" class="btn btn--gold btn--full" type="button">
-              ⬇️ ดาวน์โหลดการ์ด PNG
+              ⬇️ บันทึกการ์ดลงเครื่อง (Save Image)
             </button>
             <button id="shareEcardBtn" class="btn btn--surface btn--full" type="button">
-              📤 แชร์การ์ด / ลิงก์กระทง
+              📤 แชร์การ์ด / ส่งให้เพื่อน
             </button>
             <button id="copyEcardLinkBtn" class="btn btn--ghost btn--full" type="button">
               🔗 คัดลอกลิงก์ไปที่กระทงนี้
             </button>
           </div>
+          <p class="ecard-save-hint">
+            💡 <strong>สำหรับมือถือ:</strong> แตะปุ่มบันทึกด้านบน หรือ<strong>แตะค้างที่รูปการ์ด</strong> แล้วเลือก <em>"บันทึกภาพ" (Save Image)</em> ลงคลังภาพได้ทันที
+          </p>
           <div class="ecard-tip">
             เพื่อนที่เปิดลิงก์ของคุณจะพุ่งตรงไปยังกระทงใบนี้บนสายน้ำ พร้อมกดส่งคำอวยพรให้คุณได้ทันที ✨
           </div>

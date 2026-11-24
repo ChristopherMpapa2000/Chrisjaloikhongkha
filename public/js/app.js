@@ -147,6 +147,7 @@ const els = {
   // E-card modal
   ecardModal: document.getElementById('ecardModal'),
   ecardCanvas: document.getElementById('ecardCanvas'),
+  ecardImg: document.getElementById('ecardImg'),
   downloadEcardBtn: document.getElementById('downloadEcardBtn'),
   shareEcardBtn: document.getElementById('shareEcardBtn'),
   copyEcardLinkBtn: document.getElementById('copyEcardLinkBtn'),
@@ -209,6 +210,7 @@ async function init() {
 
   // Test / cameo hook
   window.triggerCroc = () => scene.triggerCrocodileAttack();
+  window.openEcardModal = openEcardModal;
 
   renderLocationBar();
   renderStudioLocationGrid();
@@ -957,16 +959,86 @@ async function openEcardModal(krathong) {
   state.ecardKrathong = krathong;
   els.ecardModal.classList.remove('hidden');
   await renderCommemorativeCard(els.ecardCanvas, krathong);
+  try {
+    const dataUrl = els.ecardCanvas.toDataURL('image/png');
+    if (els.ecardImg) {
+      els.ecardImg.src = dataUrl;
+    }
+  } catch (err) {
+    console.error('Failed to sync ecard img preview:', err);
+  }
 }
 
-function downloadEcardPng() {
+/**
+ * Robust cross-platform image saving for Mobile (iOS Safari / in-app browsers / Android) and Desktop.
+ */
+async function saveCanvasImage(canvas, fileName, title = 'การ์ดที่ระลึกวันลอยกระทง') {
+  if (!canvas) return;
+
+  try {
+    // 1. Convert canvas to Blob & File
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('Canvas toBlob returned null');
+
+    const file = new File([blob], fileName, { type: 'image/png' });
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // 2. On Mobile with Web Share API: triggers native iOS/Android sheet with "Save Image" to camera roll
+    if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title,
+        });
+        showSnackbar('บันทึกรูปภาพเรียบร้อยแล้ว ✨');
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return; // User simply closed the share sheet
+        console.warn('Mobile share failed, using fallback:', err);
+      }
+    }
+
+    // 3. Blob ObjectURL download (Desktop browsers & Android Chrome)
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = fileName;
+    link.rel = 'noopener';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+    }, 2500);
+
+    // If on iOS where <a download> might be silently ignored:
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      showSnackbar('แตะที่รูปการ์ดค้างไว้ แล้วเลือก "บันทึกภาพ" (Save Image) 📸');
+    } else {
+      showSnackbar('บันทึกการ์ด (PNG) ลงเครื่องเรียบร้อยแล้ว 🎴');
+    }
+  } catch (err) {
+    console.error('saveCanvasImage error:', err);
+    // Ultimate fallback: data URL
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = fileName;
+      link.click();
+      showSnackbar('แตะที่รูปการ์ดค้างไว้ แล้วเลือก "บันทึกภาพ" 📸');
+    } catch {
+      showSnackbar('แตะที่รูปการ์ดค้างไว้ แล้วเลือก "บันทึกภาพ" 📸');
+    }
+  }
+}
+
+async function downloadEcardPng() {
   if (!state.ecardKrathong) return;
-  const link = document.createElement('a');
   const safeName = state.ecardKrathong.name.replace(/[^\p{L}\p{N}_-]+/gu, '_').slice(0, 24) || 'krathong';
-  link.download = `saeng-khongkha-${safeName}.png`;
-  link.href = els.ecardCanvas.toDataURL('image/png');
-  link.click();
-  showSnackbar('ดาวน์โหลดการ์ดที่ระลึก (PNG) เรียบร้อยแล้ว 🎴');
+  const fileName = `saeng-khongkha-${safeName}.png`;
+  await saveCanvasImage(els.ecardCanvas, fileName, `การ์ดที่ระลึกวันลอยกระทงของคุณ${state.ecardKrathong.name}`);
 }
 
 async function shareEcardOrLink() {
@@ -1202,11 +1274,8 @@ function triggerSiemSiShake() {
 async function downloadFortunePng() {
   if (!state.currentFortune) return;
   await renderFortuneCardPng(els.fortuneExportCanvas, state.currentFortune);
-  const link = document.createElement('a');
-  link.download = `saeng-khongkha-siemsi-${state.currentFortune.no}.png`;
-  link.href = els.fortuneExportCanvas.toDataURL('image/png');
-  link.click();
-  showSnackbar('บันทึกใบเซียมซี (PNG) เรียบร้อย พร้อมแชร์ลงสตอรี่! 🔮');
+  const fileName = `saeng-khongkha-siemsi-${state.currentFortune.no}.png`;
+  await saveCanvasImage(els.fortuneExportCanvas, fileName, `ใบเซียมซีคืนเพ็ญใบที่ ${state.currentFortune.no}`);
 }
 
 async function jumpToKrathong(krathong) {

@@ -41,10 +41,19 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  -webkit-touch-callout: none !important;
-  -webkit-user-select: none !important;
-  user-select: none !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Allow images to be saved via long-press on iOS */
+img,
+.ecard-img,
+#ecardImg {
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
 }
 
 html,
@@ -1352,6 +1361,18 @@ body.zen-mode .zen-restore-btn {
   display: block;
 }
 
+#ecardImg,
+.ecard-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+
 .ecard-desc {
   margin: 0 0 18px;
   font-size: 0.88rem;
@@ -1363,7 +1384,28 @@ body.zen-mode .zen-restore-btn {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+}
+
+.ecard-save-hint {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #bae6fd;
+}
+
+.ecard-save-hint strong {
+  color: #fef08a;
+}
+
+.ecard-save-hint em {
+  font-style: normal;
+  color: #ffffff;
+  text-decoration: underline;
 }
 
 .ecard-tip {
